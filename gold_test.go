@@ -14,13 +14,17 @@ func init() {
 }
 
 func TestGold_JSONEq(t *testing.T) {
-	g := rose.New(t, rose.UpdateFlag(update))
-	g.JSONEq("testdata/json_eq.golden.json", `{"foo":123,"bar":"hello world","a":true}`)
+	golden := rose.New(t, rose.UpdateFlag(update))
+	golden.JSONEq("testdata/json_eq.golden.json", `{"foo":123,"bar":"hello world","a":true}`)
 }
 
 func TestGold_TOMLEq(t *testing.T) {
-	g := rose.New(t, rose.UpdateFlag(update), rose.Prefix("testdata"))
-	g.TOMLEq("toml_eq.golden.toml", `
+	golden := rose.New(
+		t,
+		rose.UpdateFlag(update),
+		rose.Prefix("testdata", t.Name()),
+	)
+	golden.TOMLEq("toml_eq.golden.toml", `
 	Age = 25
 	Cats = [ "Cauchy", "Plato" ]
 	

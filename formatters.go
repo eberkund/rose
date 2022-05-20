@@ -13,11 +13,11 @@ import (
 type Formats func(reader io.Reader, writer io.Writer) error
 
 type Encoder interface {
-	Encode(v any) error
+	Encode(v interface{}) error
 }
 
 type Decoder interface {
-	Decode(v any) error
+	Decode(v interface{}) error
 }
 
 func format(encoder Encoder, decoder Decoder) error {

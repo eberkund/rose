@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -41,9 +42,9 @@ func UpdateFlag(flag bool) GoldOption {
 }
 
 // Prefix sets the folder prefix for golden files.
-func Prefix(prefix string) GoldOption {
+func Prefix(elems ...string) GoldOption {
 	return func(g *Gold) {
-		g.prefix = prefix
+		g.prefix = path.Join(elems...)
 	}
 }
 
