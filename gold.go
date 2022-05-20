@@ -1,47 +1,31 @@
 package rose
 
 import (
-	"flag"
+	"bytes"
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
-var update bool
-
-func init() {
-	flag.BoolVar(&update, "update", false, "update golden files")
-}
-
+// Gold makes assertions against golden files.
 type Gold struct {
-	ignoreOrder bool
-	flagName    string
-	flag        bool
-	t           *testing.T
+	flag   bool
+	format bool
+	prefix string
+	t      *testing.T
 }
 
-type GoldOption func(*Gold)
-
-func IgnoreOrder() GoldOption {
-	return func(g *Gold) {
-		g.ignoreOrder = true
-	}
-}
-
-func FlagName(flagName string) GoldOption {
-	return func(g *Gold) {
-		g.flagName = flagName
-	}
-}
-
+// New initializes a Gold.
 func New(t *testing.T, options ...GoldOption) *Gold {
 	g := &Gold{
-		t:           t,
-		ignoreOrder: false,
+		flag:   false,
+		format: true,
+		t:      t,
 	}
 	for _, o := range options {
 		o(g)
@@ -49,18 +33,79 @@ func New(t *testing.T, options ...GoldOption) *Gold {
 	return g
 }
 
-func (g *Gold) JSONEq(golden, actual string) {
-	if update {
-		file, err := os.OpenFile(golden, os.O_WRONLY, os.ModeExclusive)
-		require.NoError(g.t, err)
-		err = formatJSON(strings.NewReader(actual), file)
-		require.NoError(g.t, err)
+// GoldOption is a method to configure initialization options.
+type GoldOption func(*Gold)
+
+// UpdateFlag sets the formatting option for a new instance of Gold.
+func UpdateFlag(flag bool) GoldOption {
+	return func(g *Gold) {
+		g.flag = flag
 	}
-	expected, err := ioutil.ReadFile(golden)
-	require.NoError(g.t, err)
-	require.JSONEq(g.t, string(expected), actual)
 }
 
-func (g *Gold) YAMLEq(golden string, reader io.Reader) {
+// Format sets the formatting option for a new instance of Gold.
+func Format(format bool) GoldOption {
+	return func(g *Gold) {
+		g.format = format
+	}
+}
 
+// Prefix sets the folder prefix for golden files.
+func Prefix(prefix string) GoldOption {
+	return func(g *Gold) {
+		g.prefix = prefix
+	}
+}
+
+func (g *Gold) addPrefix(path string) string {
+	return filepath.Join(g.prefix, path)
+}
+
+// JSONEq compares XML to golden file.
+func (g *Gold) JSONEq(goldenPath, actual string) {
+	g.genericEQ(g.addPrefix(goldenPath), actual, formatJSON)
+}
+
+// XMLEq compares XML to golden file.
+func (g *Gold) XMLEq(goldenPath, actual string) {
+	g.genericEQ(g.addPrefix(goldenPath), actual, formatXML)
+}
+
+// TOMLEq compares TOML to golden file.
+func (g *Gold) TOMLEq(goldenPath, actual string) {
+	g.genericEQ(g.addPrefix(goldenPath), actual, formatTOML)
+}
+
+// YAMLEq compares YAML to golden file.
+func (g *Gold) YAMLEq(goldenPath, actual string) {
+	g.genericEQ(g.addPrefix(goldenPath), actual, formatYAML)
+}
+
+// Eq compares string to golden file.
+func (g *Gold) Eq(goldenPath, actual string) {
+	noopFormatter := func(reader io.Reader, writer io.Writer) error {
+		_, err := io.Copy(writer, reader)
+		return err
+	}
+	g.genericEQ(g.addPrefix(goldenPath), actual, noopFormatter)
+}
+
+func (g *Gold) genericEQ(goldenPath, actual string, formatter Formats) {
+	// Update file if flag is set
+	if g.flag {
+		file, err := os.OpenFile(goldenPath, os.O_WRONLY, os.ModeExclusive)
+		require.NoError(g.t, err)
+		err = formatter(strings.NewReader(actual), file)
+		require.NoError(g.t, err)
+	}
+
+	// Normalize input before comparing
+	var formatted bytes.Buffer
+	err := formatter(strings.NewReader(actual), &formatted)
+	require.NoError(g.t, err)
+
+	// Compare golden to actual
+	expected, err := ioutil.ReadFile(goldenPath)
+	require.NoError(g.t, err)
+	require.Equal(g.t, string(expected), formatted.String())
 }
