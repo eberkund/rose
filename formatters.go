@@ -37,17 +37,14 @@ func formatJSON(reader io.Reader, writer io.Writer) error {
 	return format(encoder, decoder)
 }
 
-func formatXML(reader io.Reader, writer io.Writer) error {
+func formatHTML(reader io.Reader, writer io.Writer) error {
 	all, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return err
 	}
 	formatted := gohtml.Format(string(all))
 	_, err = io.WriteString(writer, formatted)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func formatYAML(reader io.Reader, writer io.Writer) error {
