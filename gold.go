@@ -52,21 +52,19 @@ func (g *Gold) withPrefix(path string) string {
 }
 
 func (g *Gold) genericEQ(goldenPath, actual string, formatter Formats) {
-	// Update file if flag is set
+	withPrefix := g.withPrefix(goldenPath)
 	if g.flag {
-		file, err := os.OpenFile(goldenPath, os.O_WRONLY, os.ModeExclusive)
+		file, err := os.OpenFile(withPrefix, os.O_WRONLY, os.ModeExclusive)
 		require.NoError(g.t, err)
 		err = formatter(strings.NewReader(actual), file)
 		require.NoError(g.t, err)
 	}
 
-	// Normalize input before comparing
 	var formatted bytes.Buffer
 	err := formatter(strings.NewReader(actual), &formatted)
 	require.NoError(g.t, err)
 
-	// Compare golden to actual
-	expected, err := ioutil.ReadFile(goldenPath)
+	expected, err := ioutil.ReadFile(withPrefix)
 	require.NoError(g.t, err)
 	require.Equal(g.t, string(expected), formatted.String())
 }

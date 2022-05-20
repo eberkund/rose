@@ -6,7 +6,6 @@ Rose is a golden file utility library for your Go tests.
 
 - Excellent support for JSON, XML, YAML
 
-
 ## Usage
 
 ```go
