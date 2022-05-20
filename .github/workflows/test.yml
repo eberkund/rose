@@ -13,4 +13,8 @@ jobs:
       - uses: golangci/golangci-lint-action@v2
 
       - name: go test
-        run: go test ./...
+        run: go test ./... -coverpkg=./... -covermode=count -timeout=30s -coverprofile=coverage.txt
+
+      - uses: codecov/codecov-action@v2
+        with:
+          fail_ci_if_error: true
