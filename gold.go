@@ -57,6 +57,7 @@ func (g *Gold) genericEQ(goldenPath, actual string, formatter Formats) {
 	if g.flag {
 		file, err := os.OpenFile(withPrefix, os.O_WRONLY, os.ModeExclusive)
 		require.NoError(g.t, err, "error opening golden file for writing")
+
 		err = formatter(strings.NewReader(actual), file)
 		require.NoError(g.t, err, "error formatting or writing input data to golden file")
 	}

@@ -32,6 +32,7 @@ func format(encoder Encoder, decoder Decoder) error {
 func formatJSON(reader io.Reader, writer io.Writer) error {
 	decoder := json.NewDecoder(reader)
 	encoder := json.NewEncoder(writer)
+	encoder.SetIndent("", "\t")
 	return format(encoder, decoder)
 }
 
