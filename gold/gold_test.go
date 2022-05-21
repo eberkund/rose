@@ -97,7 +97,7 @@ func TestUpdate(t *testing.T) {
 	err = file.Close()
 	require.NoError(t, err)
 
-	g := gold.New(t, gold.WithFS(memFs), gold.WithFlag(true))
+	g := gold.New(t, gold.WithFS(memFs), gold.WithFlag(true), gold.WithFatal(false))
 	g.Eq("test_data.txt", newData)
 
 	data, err := afero.ReadFile(memFs, "testdata/test_data.txt")
