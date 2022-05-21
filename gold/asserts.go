@@ -1,26 +1,30 @@
-package rose
+package gold
+
+import (
+	"github.com/eberkund/rose/formatting"
+)
 
 // JSONEq compares XML to golden file.
 func (g *Gold) JSONEq(goldenPath, actual string) {
-	g.genericEQ(goldenPath, actual, formatJSON)
+	g.fail(g.assert(goldenPath, actual, formatting.JSON))
 }
 
 // HTMLEq compares XML to golden file.
 func (g *Gold) HTMLEq(goldenPath, actual string) {
-	g.genericEQ(goldenPath, actual, formatHTML)
+	g.fail(g.assert(goldenPath, actual, formatting.HTML))
 }
 
 // TOMLEq compares TOML to golden file.
 func (g *Gold) TOMLEq(goldenPath, actual string) {
-	g.genericEQ(goldenPath, actual, formatTOML)
+	g.fail(g.assert(goldenPath, actual, formatting.TOML))
 }
 
 // YAMLEq compares YAML to golden file.
 func (g *Gold) YAMLEq(goldenPath, actual string) {
-	g.genericEQ(goldenPath, actual, formatYAML)
+	g.fail(g.assert(goldenPath, actual, formatting.YAML))
 }
 
 // Eq compares string to golden file.
 func (g *Gold) Eq(goldenPath, actual string) {
-	g.genericEQ(goldenPath, actual, formatNoop)
+	g.fail(g.assert(goldenPath, actual, formatting.NoOp))
 }
