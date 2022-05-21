@@ -72,7 +72,7 @@ jobs:
 			gold := rose.New(
 				t,
 				rose.WithPrefix("testdata", t.Name()),
-				rose.WithFlag(true),
+				rose.WithFlag(*update),
 			)
 			f := tc.test(gold)
 			f(tc.goldenFile, tc.input)
