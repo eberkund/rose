@@ -1,11 +1,11 @@
-package rose_test
+package gold_test
 
 import (
 	"flag"
 	"io"
 	"testing"
 
-	"github.com/eberkund/rose"
+	"github.com/eberkund/rose/gold"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
@@ -16,26 +16,26 @@ func TestExistingFiles(t *testing.T) {
 	testCases := map[string]struct {
 		inputData  string
 		goldenFile string
-		testFn     func(g *rose.Gold) func(string, string, ...interface{})
+		testFn     func(g *gold.Gold) func(string, string, ...interface{})
 	}{
 		"json": {
 			inputData:  `{"foo":123,"bar":"hello world","a":true}`,
 			goldenFile: "json_eq.golden.json",
-			testFn: func(gold *rose.Gold) func(string, string, ...interface{}) {
+			testFn: func(gold *gold.Gold) func(string, string, ...interface{}) {
 				return gold.JSONEq
 			},
 		},
 		"text": {
 			goldenFile: "text_eq.golden.txt",
 			inputData:  "Hello\nWorld\n!",
-			testFn: func(gold *rose.Gold) func(string, string, ...interface{}) {
+			testFn: func(gold *gold.Gold) func(string, string, ...interface{}) {
 				return gold.Eq
 			},
 		},
 		"html": {
 			goldenFile: "xml_eq.golden.toml",
 			inputData:  `<fruits><apple/><banana/></fruits>`,
-			testFn: func(gold *rose.Gold) func(string, string, ...interface{}) {
+			testFn: func(gold *gold.Gold) func(string, string, ...interface{}) {
 				return gold.HTMLEq
 			},
 		},
@@ -49,7 +49,7 @@ Pi = 3.14
 Perfection = [ 6, 28, 496, 8128 ]
 DOB = 1987-07-05T05:45:00Z
 `,
-			testFn: func(gold *rose.Gold) func(string, string, ...interface{}) {
+			testFn: func(gold *gold.Gold) func(string, string, ...interface{}) {
 				return gold.TOMLEq
 			},
 		},
@@ -65,17 +65,17 @@ jobs:
        with:
          go-version: "1.18"
 `,
-			testFn: func(g *rose.Gold) func(string, string, ...interface{}) {
+			testFn: func(g *gold.Gold) func(string, string, ...interface{}) {
 				return g.YAMLEq
 			},
 		},
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			gold := rose.New(
+			gold := gold.New(
 				t,
-				rose.WithPrefix("testdata", t.Name()),
-				rose.WithFlag(*update),
+				gold.WithPrefix("testdata", t.Name()),
+				gold.WithFlag(*update),
 			)
 			f := tc.testFn(gold)
 			f(tc.goldenFile, tc.inputData)
@@ -97,7 +97,7 @@ func TestUpdate(t *testing.T) {
 	err = file.Close()
 	require.NoError(t, err)
 
-	g := rose.New(t, rose.WithFS(memFs), rose.WithFlag(true))
+	g := gold.New(t, gold.WithFS(memFs), gold.WithFlag(true))
 	g.Eq("test_data.txt", newData)
 
 	data, err := afero.ReadFile(memFs, "testdata/test_data.txt")

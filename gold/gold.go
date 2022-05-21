@@ -1,4 +1,4 @@
-package rose
+package gold
 
 import (
 	"bytes"
@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/eberkund/rose/formatting"
 	"github.com/pkg/errors"
 	"github.com/pmezard/go-difflib/difflib"
 	"github.com/spf13/afero"
@@ -72,7 +73,7 @@ func (g *Gold) prependPrefix(path string) string {
 	return filepath.Join(g.prefix, path)
 }
 
-func (g *Gold) update(filename, actual string, formatter Formats) error {
+func (g *Gold) update(filename, actual string, formatter formatting.Formats) error {
 	if !g.flag {
 		return nil
 	}
@@ -99,7 +100,7 @@ func (g *Gold) update(filename, actual string, formatter Formats) error {
 	return nil
 }
 
-func (g *Gold) assert(goldenPath, actual string, formatter Formats, msgAndArgs ...interface{}) (string, error) {
+func (g *Gold) assert(goldenPath, actual string, formatter formatting.Formats, msgAndArgs ...interface{}) (string, error) {
 	prefixed := g.prependPrefix(goldenPath)
 	if err := g.update(prefixed, actual, formatter); err != nil {
 		return "", err
@@ -125,7 +126,7 @@ func (g *Gold) assert(goldenPath, actual string, formatter Formats, msgAndArgs .
 	return text, nil
 }
 
-func (g *Gold) handleError(diff string, err error) {
+func (g *Gold) fail(diff string, err error) {
 	if err != nil {
 		if g.fatal {
 			g.t.Fatal(err)

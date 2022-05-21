@@ -1,4 +1,4 @@
-package rose
+package formatting
 
 import (
 	"encoding/json"
@@ -7,24 +7,21 @@ import (
 
 	"github.com/pelletier/go-toml"
 	"github.com/yosssi/gohtml"
-
 	"gopkg.in/yaml.v3"
 )
 
 // Formats is an alias for function signature that reads from reader, formats it and writes to writer.
 type Formats func(reader io.Reader, writer io.Writer) error
 
-// Encoder encodes the given struct to an io.Writer.
-type Encoder interface {
+type encoder interface {
 	Encode(v interface{}) error
 }
 
-// Decoder decodes from an io.Reader to the given struct.
-type Decoder interface {
+type decoder interface {
 	Decode(v interface{}) error
 }
 
-func format(encoder Encoder, decoder Decoder) error {
+func format(encoder encoder, decoder decoder) error {
 	var decoded interface{}
 	err := decoder.Decode(&decoded)
 	if err != nil {
@@ -33,14 +30,16 @@ func format(encoder Encoder, decoder Decoder) error {
 	return encoder.Encode(decoded)
 }
 
-func formatJSON(reader io.Reader, writer io.Writer) error {
+// JSON formats the contents of reader and writes the results to writer.
+func JSON(reader io.Reader, writer io.Writer) error {
 	decoder := json.NewDecoder(reader)
 	encoder := json.NewEncoder(writer)
 	encoder.SetIndent("", "\t")
 	return format(encoder, decoder)
 }
 
-func formatHTML(reader io.Reader, writer io.Writer) error {
+// HTML formats the contents of reader and writes the results to writer.
+func HTML(reader io.Reader, writer io.Writer) error {
 	all, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return err
@@ -50,14 +49,16 @@ func formatHTML(reader io.Reader, writer io.Writer) error {
 	return err
 }
 
-func formatYAML(reader io.Reader, writer io.Writer) error {
+// YAML formats the contents of reader and writes the results to writer.
+func YAML(reader io.Reader, writer io.Writer) error {
 	encoder := yaml.NewEncoder(writer)
 	encoder.SetIndent(2)
 	decoder := yaml.NewDecoder(reader)
 	return format(encoder, decoder)
 }
 
-func formatTOML(reader io.Reader, writer io.Writer) error {
+// TOML formats the contents of reader and writes the results to writer.
+func TOML(reader io.Reader, writer io.Writer) error {
 	encoder := toml.NewEncoder(writer)
 	encoder.Order(toml.OrderAlphabetical)
 	encoder.Indentation("  ")
@@ -65,7 +66,8 @@ func formatTOML(reader io.Reader, writer io.Writer) error {
 	return format(encoder, decoder)
 }
 
-func formatNoop(reader io.Reader, writer io.Writer) error {
+// NoOp copies the reader contents to writer without any changes.
+func NoOp(reader io.Reader, writer io.Writer) error {
 	_, err := io.Copy(writer, reader)
 	return err
 }
