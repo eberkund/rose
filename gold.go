@@ -85,7 +85,7 @@ func (g *Gold) update(filename, actual string, formatter Formats) error {
 	}
 	err = formatter(strings.NewReader(actual), file)
 	if err != nil {
-		return errors.Wrap(err, "could not format or write input data to golden file")
+		return errors.Wrap(err, "could not format or write inputData data to golden file")
 	}
 	return nil
 }
@@ -97,7 +97,7 @@ func (g *Gold) assert(goldenPath, actual string, formatter Formats, msgAndArgs .
 	}
 	var formatted bytes.Buffer
 	if err := formatter(strings.NewReader(actual), &formatted); err != nil {
-		return "", errors.Wrap(err, "could not format input data")
+		return "", errors.Wrap(err, "could not format inputData data")
 	}
 	expected, err := afero.ReadFile(g.fs, prefixed)
 	if err != nil {
