@@ -6,7 +6,9 @@ import (
 	"testing"
 
 	"github.com/eberkund/rose/gold"
+	"github.com/eberkund/rose/mocks"
 	"github.com/spf13/afero"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -105,11 +107,10 @@ func TestUpdate(t *testing.T) {
 	require.Equal(t, newData, string(data))
 }
 
-//func TestFailingDiff(t *testing.T) {
-//	gold := rose.New(t, rose.WithPrefix("testdata", "TestExistingFiles", "json"))
-//	gold.JSONEq("json_eq.golden.json", "{}")
-//	if t.Failed() {
-//		t.SkipNow()
-//		println("very nice!")
-//	}
-//}
+func TestFailingDiff(t *testing.T) {
+	tm := mocks.NewTesting(t)
+	tm.On("Fatalf", mock.Anything, mock.Anything).Once()
+	g := gold.New(tm, gold.WithPrefix("testdata", "TestExistingFiles", "json"))
+	g.JSONEq("json_eq.golden.json", "{}")
+	tm.AssertExpectations(t)
+}

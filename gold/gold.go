@@ -6,7 +6,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"testing"
 
 	"github.com/eberkund/rose/formatting"
 	"github.com/pkg/errors"
@@ -14,17 +13,24 @@ import (
 	"github.com/spf13/afero"
 )
 
+type Testing interface {
+	Error(args ...any)
+	Errorf(format string, args ...any)
+	Fatal(args ...any)
+	Fatalf(format string, args ...any)
+}
+
 // Gold makes assertions against golden files.
 type Gold struct {
 	flag   bool
 	fatal  bool
 	prefix string
-	t      *testing.T
+	t      Testing
 	fs     afero.Fs
 }
 
 // New initializes a Gold.
-func New(t *testing.T, options ...GoldOption) *Gold {
+func New(t Testing, options ...Option) *Gold {
 	g := &Gold{
 		flag:   false,
 		fatal:  true,
@@ -38,32 +44,32 @@ func New(t *testing.T, options ...GoldOption) *Gold {
 	return g
 }
 
-// GoldOption is a method to configure initialization options.
-type GoldOption func(g *Gold)
+// Option is a method to configure initialization options.
+type Option func(g *Gold)
 
 // WithFatal configures whether file differences will be fatal or errors.
-func WithFatal(fatal bool) GoldOption {
+func WithFatal(fatal bool) Option {
 	return func(g *Gold) {
 		g.fatal = fatal
 	}
 }
 
 // WithFS sets the internal filesystem used for assertions.
-func WithFS(fs afero.Fs) GoldOption {
+func WithFS(fs afero.Fs) Option {
 	return func(g *Gold) {
 		g.fs = fs
 	}
 }
 
 // WithFlag sets the formatting option for a new instance of Gold.
-func WithFlag(flag bool) GoldOption {
+func WithFlag(flag bool) Option {
 	return func(g *Gold) {
 		g.flag = flag
 	}
 }
 
 // WithPrefix sets the folder prefix for golden files.
-func WithPrefix(elems ...string) GoldOption {
+func WithPrefix(elems ...string) Option {
 	return func(g *Gold) {
 		g.prefix = path.Join(elems...)
 	}
