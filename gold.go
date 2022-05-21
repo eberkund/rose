@@ -2,13 +2,13 @@ package rose
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,13 +17,16 @@ type Gold struct {
 	flag   bool
 	prefix string
 	t      *testing.T
+	fs     afero.Fs
 }
 
 // New initializes a Gold.
 func New(t *testing.T, options ...GoldOption) *Gold {
 	g := &Gold{
-		flag: false,
-		t:    t,
+		flag:   false,
+		t:      t,
+		prefix: "testdata",
+		fs:     afero.NewOsFs(),
 	}
 	for _, o := range options {
 		o(g)
@@ -34,37 +37,37 @@ func New(t *testing.T, options ...GoldOption) *Gold {
 // GoldOption is a method to configure initialization options.
 type GoldOption func(*Gold)
 
-// UpdateFlag sets the formatting option for a new instance of Gold.
-func UpdateFlag(flag bool) GoldOption {
+// WithFlag sets the formatting option for a new instance of Gold.
+func WithFlag(flag bool) GoldOption {
 	return func(g *Gold) {
 		g.flag = flag
 	}
 }
 
-// Prefix sets the folder prefix for golden files.
-func Prefix(elems ...string) GoldOption {
+// WithPrefix sets the folder prefix for golden files.
+func WithPrefix(elems ...string) GoldOption {
 	return func(g *Gold) {
 		g.prefix = path.Join(elems...)
 	}
 }
 
-func (g *Gold) withPrefix(path string) string {
+func (g *Gold) prependPrefix(path string) string {
 	return filepath.Join(g.prefix, path)
 }
 
 func (g *Gold) genericEQ(goldenPath, actual string, formatter Formats) {
-	withPrefix := g.withPrefix(goldenPath)
+	withPrefix := g.prependPrefix(goldenPath)
 	if g.flag {
-		err := os.MkdirAll(filepath.Dir(withPrefix), 0o750)
+		err := g.fs.MkdirAll(filepath.Dir(withPrefix), 0o750)
 		require.NoError(g.t, err, "could not create directory which holds golden file")
 
-		create, err := os.Create(withPrefix)
+		create, err := g.fs.Create(withPrefix)
 		require.NoError(g.t, err, "could not create golden file")
 
 		err = create.Close()
 		require.NoError(g.t, err, "could not close golden file after creating it")
 
-		file, err := os.OpenFile(withPrefix, os.O_WRONLY, os.ModeExclusive)
+		file, err := g.fs.OpenFile(withPrefix, os.O_WRONLY, os.ModeExclusive)
 		require.NoError(g.t, err, "error opening golden file for writing")
 
 		err = formatter(strings.NewReader(actual), file)
@@ -75,7 +78,7 @@ func (g *Gold) genericEQ(goldenPath, actual string, formatter Formats) {
 	err := formatter(strings.NewReader(actual), &formatted)
 	require.NoError(g.t, err, "error formatting input data")
 
-	expected, err := ioutil.ReadFile(withPrefix)
+	expected, err := afero.ReadFile(g.fs, withPrefix)
 	require.NoError(g.t, err, "error reading golden file")
 	require.Equal(g.t, string(expected), formatted.String(), "input data did not match golden file")
 }
