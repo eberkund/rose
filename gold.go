@@ -16,6 +16,7 @@ import (
 // Gold makes assertions against golden files.
 type Gold struct {
 	flag   bool
+	fatal  bool
 	prefix string
 	t      *testing.T
 	fs     afero.Fs
@@ -25,6 +26,7 @@ type Gold struct {
 func New(t *testing.T, options ...GoldOption) *Gold {
 	g := &Gold{
 		flag:   false,
+		fatal:  true,
 		t:      t,
 		prefix: "testdata",
 		fs:     afero.NewOsFs(),
@@ -37,6 +39,13 @@ func New(t *testing.T, options ...GoldOption) *Gold {
 
 // GoldOption is a method to configure initialization options.
 type GoldOption func(g *Gold)
+
+// WithFatal configures whether file differences will be fatal or errors.
+func WithFatal(fatal bool) GoldOption {
+	return func(g *Gold) {
+		g.fatal = fatal
+	}
+}
 
 // WithFS sets the internal filesystem used for assertions.
 func WithFS(fs afero.Fs) GoldOption {
@@ -104,9 +113,9 @@ func (g *Gold) assert(goldenPath, actual string, formatter Formats, msgAndArgs .
 		return "", errors.Wrap(err, "could not read golden file")
 	}
 	text, err := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
-		FromFile: "Original",
+		FromFile: "Golden",
 		A:        difflib.SplitLines(string(expected)),
-		ToFile:   "Current",
+		ToFile:   "Provided",
 		B:        difflib.SplitLines(formatted.String()),
 		Context:  3,
 	})
@@ -118,9 +127,17 @@ func (g *Gold) assert(goldenPath, actual string, formatter Formats, msgAndArgs .
 
 func (g *Gold) handleError(diff string, err error) {
 	if err != nil {
-		g.t.Fatal(err)
+		if g.fatal {
+			g.t.Fatal(err)
+		} else {
+			g.t.Error(err)
+		}
 	}
 	if diff != "" {
-		g.t.Fatalf("\n%s", diff)
+		if g.fatal {
+			g.t.Fatalf("\n%s", diff)
+		} else {
+			g.t.Errorf("\n%s", diff)
+		}
 	}
 }
