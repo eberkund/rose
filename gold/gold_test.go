@@ -16,26 +16,26 @@ func TestExistingFiles(t *testing.T) {
 	testCases := map[string]struct {
 		inputData  string
 		goldenFile string
-		testFn     func(g *gold.Gold) func(string, string, ...interface{})
+		testFn     func(g *gold.Gold) func(string, string)
 	}{
 		"json": {
 			inputData:  `{"foo":123,"bar":"hello world","a":true}`,
 			goldenFile: "json_eq.golden.json",
-			testFn: func(gold *gold.Gold) func(string, string, ...interface{}) {
+			testFn: func(gold *gold.Gold) func(string, string) {
 				return gold.JSONEq
 			},
 		},
 		"text": {
 			goldenFile: "text_eq.golden.txt",
 			inputData:  "Hello\nWorld\n!",
-			testFn: func(gold *gold.Gold) func(string, string, ...interface{}) {
+			testFn: func(gold *gold.Gold) func(string, string) {
 				return gold.Eq
 			},
 		},
 		"html": {
 			goldenFile: "xml_eq.golden.toml",
 			inputData:  `<fruits><apple/><banana/></fruits>`,
-			testFn: func(gold *gold.Gold) func(string, string, ...interface{}) {
+			testFn: func(gold *gold.Gold) func(string, string) {
 				return gold.HTMLEq
 			},
 		},
@@ -49,7 +49,7 @@ Pi = 3.14
 Perfection = [ 6, 28, 496, 8128 ]
 DOB = 1987-07-05T05:45:00Z
 `,
-			testFn: func(gold *gold.Gold) func(string, string, ...interface{}) {
+			testFn: func(gold *gold.Gold) func(string, string) {
 				return gold.TOMLEq
 			},
 		},
@@ -65,7 +65,7 @@ jobs:
        with:
          go-version: "1.18"
 `,
-			testFn: func(g *gold.Gold) func(string, string, ...interface{}) {
+			testFn: func(g *gold.Gold) func(string, string) {
 				return g.YAMLEq
 			},
 		},
