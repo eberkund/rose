@@ -54,12 +54,7 @@ func formatYAML(reader io.Reader, writer io.Writer) error {
 	encoder := yaml.NewEncoder(writer)
 	encoder.SetIndent(2)
 	decoder := yaml.NewDecoder(reader)
-	var decoded map[string]interface{}
-	err := decoder.Decode(&decoded)
-	if err != nil {
-		return err
-	}
-	return encoder.Encode(decoded)
+	return format(encoder, decoder)
 }
 
 func formatTOML(reader io.Reader, writer io.Writer) error {
