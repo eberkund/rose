@@ -12,12 +12,13 @@ import (
 	"github.com/spf13/afero"
 )
 
-// Testing is a subset of testing.TB that can be mocked.
+// Testing is a subset of testing.TB that can be reimplemented.
 type Testing interface {
 	Error(args ...any)
 	Errorf(format string, args ...any)
 	Fatal(args ...any)
 	Fatalf(format string, args ...any)
+	Helper()
 }
 
 // Gold makes assertions against golden files.
@@ -102,6 +103,7 @@ func (g *Gold) assert(goldenPath, actual string, formatter formatting.Formats, m
 }
 
 func (g *Gold) fail(diff string, err error) {
+	g.t.Helper()
 	if err != nil {
 		if g.fatal {
 			g.t.Fatal(err)
