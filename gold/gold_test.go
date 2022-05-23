@@ -73,9 +73,9 @@ jobs:
 		},
 	}
 	for name, tc := range testCases {
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(subTest *testing.T) {
 			g := gold.New(
-				t,
+				subTest,
 				gold.WithPrefix("testdata", t.Name()),
 				gold.WithFlag(*update),
 				gold.WithFailAfter(),
@@ -86,7 +86,7 @@ jobs:
 	}
 }
 
-func TestUpdate(t *testing.T) {
+func TestUpdatingGoldenFile(t *testing.T) {
 	const (
 		oldData = "foo"
 		newData = "bar"
@@ -108,16 +108,16 @@ func TestUpdate(t *testing.T) {
 	require.Equal(t, newData, string(data))
 }
 
-func TestFailingDiff(t *testing.T) {
+func TestDiffGoldenFile(t *testing.T) {
 	tm := mocks.NewTesting(t)
 	tm.On("Helper")
 	tm.On("Logf", mock.Anything, mock.Anything).Once()
 	tm.On("FailNow").Once()
-	g := gold.New(tm, gold.WithPrefix("testdata", "TestExistingFiles", "json"))
+	g := gold.New(tm, gold.WithPrefix("testdata", "TestExistingFiles"))
 	g.JSONEq("json_eq.golden.json", "{}")
 }
 
-func TestFilesystemFails(t *testing.T) {
+func TestFileSystemError(t *testing.T) {
 	tm := mocks.NewTesting(t)
 	tm.On("Helper")
 	tm.On("Log", mock.Anything).Once()
