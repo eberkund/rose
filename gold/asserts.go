@@ -6,30 +6,30 @@ import (
 
 // JSONEq compares XML to golden file.
 func (g *Gold) JSONEq(goldenPath, actual string) {
-	g.t.Helper()
-	g.fail(g.assert(goldenPath, actual, formatting.JSON))
+	//g.t.Helper()
+	g.verify(g.assert(goldenPath, actual, formatting.JSON))
 }
 
 // HTMLEq compares XML to golden file.
 func (g *Gold) HTMLEq(goldenPath, actual string) {
-	g.t.Helper()
-	g.fail(g.assert(goldenPath, actual, formatting.HTML))
+	//g.t.Helper()
+	g.verify(g.assert(goldenPath, actual, formatting.HTML))
 }
 
 // TOMLEq compares TOML to golden file.
 func (g *Gold) TOMLEq(goldenPath, actual string) {
-	g.t.Helper()
-	g.fail(g.assert(goldenPath, actual, formatting.TOML))
+	//g.t.Helper()
+	g.verify(g.assert(goldenPath, actual, formatting.TOML))
 }
 
 // YAMLEq compares YAML to golden file.
 func (g *Gold) YAMLEq(goldenPath, actual string) {
-	g.t.Helper()
-	g.fail(g.assert(goldenPath, actual, formatting.YAML))
+	//g.t.Helper()
+	g.verify(g.assert(goldenPath, actual, formatting.YAML))
 }
 
 // Eq compares string to golden file.
 func (g *Gold) Eq(goldenPath, actual string) {
-	g.t.Helper()
-	g.fail(g.assert(goldenPath, actual, formatting.NoOp))
+	//g.t.Helper()
+	g.verify(g.assert(goldenPath, actual, formatting.NoOp))
 }
