@@ -103,7 +103,6 @@ func (g *Gold) assert(goldenPath, actual string, formatter formatting.Formats, m
 }
 
 func (g *Gold) fail(diff string, err error) {
-	g.t.Helper()
 	if err != nil {
 		if g.fatal {
 			g.t.Fatal(err)
