@@ -9,10 +9,10 @@ import (
 // Option is the signature for functions that configure Gold.
 type Option func(g *Gold)
 
-// WithFatal configures whether file differences will be fatal or errors.
-func WithFatal(fatal bool) Option {
+// WithFailAfter configures whether to stop test execution upon failure.
+func WithFailAfter() Option {
 	return func(g *Gold) {
-		g.fatal = fatal
+		g.fail = g.t.FailNow
 	}
 }
 
@@ -23,7 +23,7 @@ func WithFS(fs afero.Fs) Option {
 	}
 }
 
-// WithFlag sets the formatting option for a new instance of Gold.
+// WithFlag sets the formatting option.
 func WithFlag(flag bool) Option {
 	return func(g *Gold) {
 		g.flag = flag

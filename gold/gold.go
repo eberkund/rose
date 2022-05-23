@@ -14,17 +14,30 @@ import (
 
 // Testing is a subset of testing.TB that can be reimplemented.
 type Testing interface {
+	Cleanup(func())
 	Error(args ...any)
 	Errorf(format string, args ...any)
+	Fail()
+	FailNow()
+	Failed() bool
 	Fatal(args ...any)
 	Fatalf(format string, args ...any)
 	Helper()
+	Log(args ...any)
+	Logf(format string, args ...any)
+	Name() string
+	Setenv(key, value string)
+	Skip(args ...any)
+	SkipNow()
+	Skipf(format string, args ...any)
+	Skipped() bool
+	TempDir() string
 }
 
 // Gold makes assertions against golden files.
 type Gold struct {
 	flag   bool
-	fatal  bool
+	fail   func()
 	prefix string
 	t      Testing
 	fs     afero.Fs
@@ -33,9 +46,9 @@ type Gold struct {
 // New initializes a Gold.
 func New(t Testing, options ...Option) *Gold {
 	g := &Gold{
-		flag:   false,
-		fatal:  true,
 		t:      t,
+		flag:   false,
+		fail:   t.FailNow,
 		prefix: "testdata",
 		fs:     afero.NewOsFs(),
 	}
@@ -76,7 +89,7 @@ func (g *Gold) update(filename, actual string, formatter formatting.Formats) err
 	return nil
 }
 
-func (g *Gold) assert(goldenPath, actual string, formatter formatting.Formats, msgAndArgs ...interface{}) (string, error) {
+func (g *Gold) assert(goldenPath, actual string, formatter formatting.Formats) (string, error) {
 	prefixed := g.prependPrefix(goldenPath)
 	if err := g.update(prefixed, actual, formatter); err != nil {
 		return "", err
@@ -102,19 +115,13 @@ func (g *Gold) assert(goldenPath, actual string, formatter formatting.Formats, m
 	return text, nil
 }
 
-func (g *Gold) fail(diff string, err error) {
+func (g *Gold) verify(diff string, err error) {
+	g.t.Helper()
 	if err != nil {
-		if g.fatal {
-			g.t.Fatal(err)
-		} else {
-			g.t.Error(err)
-		}
-	}
-	if diff != "" {
-		if g.fatal {
-			g.t.Fatalf("\n%s", diff)
-		} else {
-			g.t.Errorf("\n%s", diff)
-		}
+		g.t.Log(err)
+		g.fail()
+	} else if diff != "" {
+		g.t.Logf("\n%s", diff)
+		g.fail()
 	}
 }
