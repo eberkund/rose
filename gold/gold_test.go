@@ -22,27 +22,27 @@ func TestExistingFiles(t *testing.T) {
 	}{
 		"json": {
 			inputData:  `{"foo":123,"bar":"hello world","a":true}`,
-			goldenFile: "json_eq.golden.json",
+			goldenFile: "assert_json.golden.json",
 			testFn: func(g *gold.Gold) func(string, string) {
 				return g.AssertEqualsJSON
 			},
 		},
 		"text": {
-			goldenFile: "text_eq.golden.txt",
+			goldenFile: "assert_text.golden.txt",
 			inputData:  "Hello\nWorld\n!",
 			testFn: func(g *gold.Gold) func(string, string) {
 				return g.AssertEquals
 			},
 		},
 		"html": {
-			goldenFile: "xml_eq.golden.toml",
+			goldenFile: "assert_xml.golden.toml",
 			inputData:  `<fruits><apple/><banana/></fruits>`,
 			testFn: func(g *gold.Gold) func(string, string) {
 				return g.AssertEqualsHTML
 			},
 		},
 		"toml": {
-			goldenFile: "toml_eq.golden.toml",
+			goldenFile: "assert_toml.golden.toml",
 			inputData: `
 Age = 25
 Cats = [ "Cauchy", "Plato" ]
@@ -56,7 +56,7 @@ DOB = 1987-07-05T05:45:00Z
 			},
 		},
 		"yaml": {
-			goldenFile: "yaml_eq.golden.yaml",
+			goldenFile: "assert_yaml.golden.yaml",
 			inputData: `
 jobs:
  test:
@@ -108,13 +108,22 @@ func TestUpdatingGoldenFile(t *testing.T) {
 	require.Equal(t, newData, string(data))
 }
 
+func TestInvalidData(t *testing.T) {
+	tm := mocks.NewTesting(t)
+	tm.On("Helper")
+	tm.On("Log", mock.Anything).Once()
+	tm.On("FailNow").Once()
+	g := gold.New(tm, gold.WithPrefix("testdata", t.Name()))
+	g.AssertEqualsJSON("empty_json.golden.json", "this is not valid JSON")
+}
+
 func TestDiffGoldenFile(t *testing.T) {
 	tm := mocks.NewTesting(t)
 	tm.On("Helper")
 	tm.On("Logf", mock.Anything, mock.Anything).Once()
 	tm.On("FailNow").Once()
-	g := gold.New(tm, gold.WithPrefix("testdata", "TestExistingFiles"))
-	g.AssertEqualsJSON("json_eq.golden.json", "{}")
+	g := gold.New(tm, gold.WithPrefix("testdata", t.Name()))
+	g.AssertEqualsJSON("empty_json.golden.json", "{}")
 }
 
 func TestFileSystemError(t *testing.T) {
@@ -124,5 +133,5 @@ func TestFileSystemError(t *testing.T) {
 	tm.On("FailNow").Once()
 	readOnlyFS := afero.NewReadOnlyFs(afero.NewMemMapFs())
 	g := gold.New(tm, gold.WithFS(readOnlyFS), gold.WithFlag(true))
-	g.AssertEquals("testdata/hello_world.txt", "Hello, World!")
+	g.AssertEquals("any/path/hello_world.golden.txt", "Hello, World!")
 }
