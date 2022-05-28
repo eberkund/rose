@@ -1,12 +1,5 @@
 package formatting
 
-import (
-	"io"
-)
-
-// Formats is an alias for function signature that reads from reader, formats it and writes to writer.
-type Formats func(reader io.Reader, writer io.Writer) error
-
 type encoder interface {
 	Encode(v interface{}) error
 }
