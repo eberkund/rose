@@ -43,7 +43,7 @@ type Gold struct {
 	fs     afero.Fs
 }
 
-// New initializes a Gold.
+// New initializes an instance of Gold.
 func New(t Testing, options ...Option) *Gold {
 	g := &Gold{
 		t:      t,
@@ -84,7 +84,7 @@ func (g *Gold) update(filename, actual string, formatter formatting.Formats) err
 	}
 	err = formatter(strings.NewReader(actual), file)
 	if err != nil {
-		return errors.Wrap(err, "could not format or write inputData data to golden file")
+		return errors.Wrap(err, "could not format or write data to golden file")
 	}
 	return nil
 }

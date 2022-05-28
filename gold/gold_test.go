@@ -24,21 +24,21 @@ func TestExistingFiles(t *testing.T) {
 			inputData:  `{"foo":123,"bar":"hello world","a":true}`,
 			goldenFile: "json_eq.golden.json",
 			testFn: func(g *gold.Gold) func(string, string) {
-				return g.JSONEq
+				return g.AssertEqualsJSON
 			},
 		},
 		"text": {
 			goldenFile: "text_eq.golden.txt",
 			inputData:  "Hello\nWorld\n!",
 			testFn: func(g *gold.Gold) func(string, string) {
-				return g.Eq
+				return g.AssertEquals
 			},
 		},
 		"html": {
 			goldenFile: "xml_eq.golden.toml",
 			inputData:  `<fruits><apple/><banana/></fruits>`,
 			testFn: func(g *gold.Gold) func(string, string) {
-				return g.HTMLEq
+				return g.AssertEqualsHTML
 			},
 		},
 		"toml": {
@@ -52,7 +52,7 @@ Perfection = [ 6, 28, 496, 8128 ]
 DOB = 1987-07-05T05:45:00Z
 `,
 			testFn: func(g *gold.Gold) func(string, string) {
-				return g.TOMLEq
+				return g.AssertEqualsTOML
 			},
 		},
 		"yaml": {
@@ -68,7 +68,7 @@ jobs:
          go-version: "1.18"
 `,
 			testFn: func(g *gold.Gold) func(string, string) {
-				return g.YAMLEq
+				return g.AssertEqualsYAML
 			},
 		},
 	}
@@ -101,7 +101,7 @@ func TestUpdatingGoldenFile(t *testing.T) {
 	require.NoError(t, err)
 
 	g := gold.New(t, gold.WithFS(memFs), gold.WithFlag(true))
-	g.Eq("test_data.txt", newData)
+	g.AssertEquals("test_data.txt", newData)
 
 	data, err := afero.ReadFile(memFs, "testdata/test_data.txt")
 	require.NoError(t, err)
@@ -114,7 +114,7 @@ func TestDiffGoldenFile(t *testing.T) {
 	tm.On("Logf", mock.Anything, mock.Anything).Once()
 	tm.On("FailNow").Once()
 	g := gold.New(tm, gold.WithPrefix("testdata", "TestExistingFiles"))
-	g.JSONEq("json_eq.golden.json", "{}")
+	g.AssertEqualsJSON("json_eq.golden.json", "{}")
 }
 
 func TestFileSystemError(t *testing.T) {
@@ -124,5 +124,5 @@ func TestFileSystemError(t *testing.T) {
 	tm.On("FailNow").Once()
 	readOnlyFS := afero.NewReadOnlyFs(afero.NewMemMapFs())
 	g := gold.New(tm, gold.WithFS(readOnlyFS), gold.WithFlag(true))
-	g.Eq("testdata/hello_world.txt", "Hello, World!")
+	g.AssertEquals("testdata/hello_world.txt", "Hello, World!")
 }
