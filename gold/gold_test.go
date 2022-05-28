@@ -73,9 +73,9 @@ jobs:
 		},
 	}
 	for name, tc := range testCases {
-		t.Run(name, func(subTest *testing.T) {
+		t.Run(name, func(st *testing.T) {
 			g := gold.New(
-				subTest,
+				st,
 				gold.WithPrefix("testdata", t.Name()),
 				gold.WithFlag(*update),
 				gold.WithFailAfter(),
