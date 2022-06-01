@@ -2,9 +2,10 @@ package rose
 
 import (
 	"encoding/json"
-	"encoding/xml"
 	"io"
+	"io/ioutil"
 
+	"github.com/go-xmlfmt/xmlfmt"
 	"github.com/pelletier/go-toml"
 
 	"gopkg.in/yaml.v3"
@@ -21,7 +22,7 @@ type Decoder interface {
 }
 
 func format(encoder Encoder, decoder Decoder) error {
-	var decoded map[string]interface{}
+	var decoded interface{}
 	err := decoder.Decode(&decoded)
 	if err != nil {
 		return err
@@ -37,10 +38,16 @@ func formatJSON(reader io.Reader, writer io.Writer) error {
 }
 
 func formatXML(reader io.Reader, writer io.Writer) error {
-	encoder := xml.NewEncoder(writer)
-	encoder.Indent("", "\t")
-	decoder := xml.NewDecoder(reader)
-	return format(encoder, decoder)
+	all, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return err
+	}
+	formatted := xmlfmt.FormatXML(string(all), "", "\t")
+	_, err = io.WriteString(writer, formatted)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func formatYAML(reader io.Reader, writer io.Writer) error {

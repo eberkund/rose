@@ -55,6 +55,15 @@ func (g *Gold) withPrefix(path string) string {
 func (g *Gold) genericEQ(goldenPath, actual string, formatter Formats) {
 	withPrefix := g.withPrefix(goldenPath)
 	if g.flag {
+		err := os.MkdirAll(filepath.Dir(withPrefix), 0o750)
+		require.NoError(g.t, err, "could not create directory which holds golden file")
+
+		create, err := os.Create(withPrefix)
+		require.NoError(g.t, err, "could not create golden file")
+
+		err = create.Close()
+		require.NoError(g.t, err, "could not close golden file after creating it")
+
 		file, err := os.OpenFile(withPrefix, os.O_WRONLY, os.ModeExclusive)
 		require.NoError(g.t, err, "error opening golden file for writing")
 

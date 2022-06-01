@@ -3,6 +3,7 @@ module github.com/eberkund/rose
 go 1.17
 
 require (
+	github.com/go-xmlfmt/xmlfmt v0.0.0-20220206211657-0a94163c4677
 	github.com/pelletier/go-toml v1.9.5
 	github.com/stretchr/testify v1.7.1
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
