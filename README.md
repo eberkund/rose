@@ -41,6 +41,6 @@ func TestFiles(t *testing.T) {
     )
 
     // Provide the filename and input data
-    g.JSONEq("somefile.golden.json", `{"foo": 123}`)
+    g.AssertEqualsJSON("somefile.golden.json", `{"foo": 123}`)
 }
 ```
