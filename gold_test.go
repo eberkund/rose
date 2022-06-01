@@ -7,45 +7,75 @@ import (
 	"github.com/eberkund/rose"
 )
 
-var update bool
+var update = flag.Bool("update", false, "update golden files")
 
-func init() {
-	flag.BoolVar(&update, "update", false, "update golden files")
-}
+func TestExistingFiles(t *testing.T) {
+	testcases := map[string]struct {
+		input      string
+		goldenFile string
+		test       func(g *rose.Gold) func(string, string)
+	}{
+		"json": {
+			input:      `{"foo":123,"bar":"hello world","a":true}`,
+			goldenFile: "json_eq.golden.json",
+			test: func(gold *rose.Gold) func(string, string) {
+				return gold.JSONEq
+			},
+		},
+		"text": {
+			goldenFile: "text_eq.golden.txt",
+			input:      "Hello\nWorld\n!",
+			test: func(gold *rose.Gold) func(string, string) {
+				return gold.Eq
+			},
+		},
+		"html": {
+			goldenFile: "xml_eq.golden.toml",
+			input:      `<fruits><apple/><banana/></fruits>`,
+			test: func(gold *rose.Gold) func(string, string) {
+				return gold.HTMLEq
+			},
+		},
+		"toml": {
+			goldenFile: "toml_eq.golden.toml",
+			input: `
+Age = 25
+Cats = [ "Cauchy", "Plato" ]
 
-func TestGold_JSONEq(t *testing.T) {
-	golden := rose.New(t, rose.UpdateFlag(update))
-	golden.JSONEq("testdata/json_eq.golden.json", `{"foo":123,"bar":"hello world","a":true}`)
-}
-
-func TestGold_TOMLEq(t *testing.T) {
-	golden := rose.New(
-		t,
-		rose.UpdateFlag(update),
-		rose.Prefix("testdata", t.Name()),
-	)
-	golden.TOMLEq("toml_eq.golden.toml", `
-	Age = 25
-	Cats = [ "Cauchy", "Plato" ]
-	
-	Pi = 3.14
-	Perfection = [ 6, 28, 496, 8128 ]
-	DOB = 1987-07-05T05:45:00Z
-	`)
-}
-
-func TestGold_Eq(t *testing.T) {
-	g := rose.New(t, rose.UpdateFlag(update), rose.Prefix("testdata"))
-	g.Eq("text_eq.golden.txt", "Hello\nWorld\n!")
-}
-
-func TestGold_HTMLEq(t *testing.T) {
-	golden := rose.New(
-		t,
-		rose.UpdateFlag(update),
-		rose.Prefix("testdata", t.Name()),
-	)
-	golden.HTMLEq("xml_eq.golden.toml", `
-	<fruits><apple/><banana/></fruits>
-	`)
+Pi = 3.14
+Perfection = [ 6, 28, 496, 8128 ]
+DOB = 1987-07-05T05:45:00Z
+`,
+			test: func(gold *rose.Gold) func(string, string) {
+				return gold.TOMLEq
+			},
+		},
+		"yaml": {
+			goldenFile: "yaml_eq.golden.yaml",
+			input: `
+jobs:
+ test:
+   runs-on: ubuntu-22.04
+   steps:
+     - uses: actions/checkout@v3
+     - uses: actions/setup-go@v2
+       with:
+         go-version: "1.18"
+`,
+			test: func(g *rose.Gold) func(string, string) {
+				return g.YAMLEq
+			},
+		},
+	}
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			gold := rose.New(
+				t,
+				rose.WithPrefix("testdata", t.Name()),
+				rose.WithFlag(*update),
+			)
+			f := tc.test(gold)
+			f(tc.goldenFile, tc.input)
+		})
+	}
 }
