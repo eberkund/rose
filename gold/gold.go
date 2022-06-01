@@ -89,14 +89,14 @@ func (g *Gold) update(filename, actual string, formatter formatting.Formats) err
 	return nil
 }
 
-func (g *Gold) assert(goldenPath, actual string, formatter formatting.Formats) (string, error) {
+func (g *Gold) assert(goldenPath, given string, formatter formatting.Formats) (string, error) {
 	prefixed := g.prependPrefix(goldenPath)
-	if err := g.update(prefixed, actual, formatter); err != nil {
+	if err := g.update(prefixed, given, formatter); err != nil {
 		return "", err
 	}
 	var formatted bytes.Buffer
-	if err := formatter(strings.NewReader(actual), &formatted); err != nil {
-		return "", errors.Wrap(err, "could not format inputData data")
+	if err := formatter(strings.NewReader(given), &formatted); err != nil {
+		return "", errors.Wrap(err, "could not format given data")
 	}
 	expected, err := afero.ReadFile(g.fs, prefixed)
 	if err != nil {
@@ -105,7 +105,7 @@ func (g *Gold) assert(goldenPath, actual string, formatter formatting.Formats) (
 	text, err := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
 		FromFile: "Golden",
 		A:        difflib.SplitLines(string(expected)),
-		ToFile:   "Provided",
+		ToFile:   "Given",
 		B:        difflib.SplitLines(formatted.String()),
 		Context:  3,
 	})
