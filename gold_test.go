@@ -16,26 +16,26 @@ func TestExistingFiles(t *testing.T) {
 	testcases := map[string]struct {
 		input      string
 		goldenFile string
-		test       func(g *rose.Gold) func(string, string)
+		test       func(g *rose.Gold) func(string, string, ...interface{})
 	}{
 		"json": {
 			input:      `{"foo":123,"bar":"hello world","a":true}`,
 			goldenFile: "json_eq.golden.json",
-			test: func(gold *rose.Gold) func(string, string) {
+			test: func(gold *rose.Gold) func(string, string, ...interface{}) {
 				return gold.JSONEq
 			},
 		},
 		"text": {
 			goldenFile: "text_eq.golden.txt",
 			input:      "Hello\nWorld\n!",
-			test: func(gold *rose.Gold) func(string, string) {
+			test: func(gold *rose.Gold) func(string, string, ...interface{}) {
 				return gold.Eq
 			},
 		},
 		"html": {
 			goldenFile: "xml_eq.golden.toml",
 			input:      `<fruits><apple/><banana/></fruits>`,
-			test: func(gold *rose.Gold) func(string, string) {
+			test: func(gold *rose.Gold) func(string, string, ...interface{}) {
 				return gold.HTMLEq
 			},
 		},
@@ -49,7 +49,7 @@ Pi = 3.14
 Perfection = [ 6, 28, 496, 8128 ]
 DOB = 1987-07-05T05:45:00Z
 `,
-			test: func(gold *rose.Gold) func(string, string) {
+			test: func(gold *rose.Gold) func(string, string, ...interface{}) {
 				return gold.TOMLEq
 			},
 		},
@@ -65,7 +65,7 @@ jobs:
        with:
          go-version: "1.18"
 `,
-			test: func(g *rose.Gold) func(string, string) {
+			test: func(g *rose.Gold) func(string, string, ...interface{}) {
 				return g.YAMLEq
 			},
 		},
@@ -104,3 +104,8 @@ func TestUpdate(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, newData, string(data))
 }
+
+//func TestFailingDiff(t *testing.T) {
+//	gold := rose.New(t, rose.WithPrefix("testdata", "TestExistingFiles", "json"))
+//	gold.JSONEq("json_eq.golden.json", "{}")
+//}
