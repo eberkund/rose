@@ -13,9 +13,10 @@ package mypackage
 
 import (
 	"flag"
+	"strings"
 	"testing"
-	
-    "github.com/eberkund/rose"
+
+	"github.com/eberkund/rose"
 )
 
 var update bool
@@ -25,10 +26,10 @@ func init() {
 }
 
 func TestFiles(t *testing.T) {
-	gold := rose.New(t, rose.UpdateFlag(update))
+	gold := rose.New(t, rose.UpdateFlag(update), rose.Prefix("testdata"))
 	gold.Eq(t, "somefile.golden.txt", "hello\nworld\n!")
-	gold.JSONEq(t, "somefile.golden.json", reader)
-	gold.TOMLEq(t, "somefile.golden.toml", reader)
+	gold.JSONEq(t, "somefile.golden.json", strings.NewReader(reader))
+	gold.TOMLEq(t, "somefile.golden.toml", strings.NewReader(reader))
 }
 
 ```
