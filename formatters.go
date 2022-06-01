@@ -5,8 +5,8 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/go-xmlfmt/xmlfmt"
 	"github.com/pelletier/go-toml"
+	"github.com/yosssi/gohtml"
 
 	"gopkg.in/yaml.v3"
 )
@@ -42,7 +42,7 @@ func formatXML(reader io.Reader, writer io.Writer) error {
 	if err != nil {
 		return err
 	}
-	formatted := xmlfmt.FormatXML(string(all), "", "\t")
+	formatted := gohtml.Format(string(all))
 	_, err = io.WriteString(writer, formatted)
 	if err != nil {
 		return err
