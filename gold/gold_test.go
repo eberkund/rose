@@ -78,6 +78,7 @@ jobs:
 				t,
 				gold.WithPrefix("testdata", t.Name()),
 				gold.WithFlag(*update),
+				gold.WithFailAfter(),
 			)
 			f := tc.testFn(g)
 			f(tc.goldenFile, tc.inputData)
@@ -99,7 +100,7 @@ func TestUpdate(t *testing.T) {
 	err = file.Close()
 	require.NoError(t, err)
 
-	g := gold.New(t, gold.WithFS(memFs), gold.WithFlag(true), gold.WithFatal(false))
+	g := gold.New(t, gold.WithFS(memFs), gold.WithFlag(true))
 	g.Eq("test_data.txt", newData)
 
 	data, err := afero.ReadFile(memFs, "testdata/test_data.txt")
@@ -109,8 +110,19 @@ func TestUpdate(t *testing.T) {
 
 func TestFailingDiff(t *testing.T) {
 	tm := mocks.NewTesting(t)
-	tm.On("Fatalf", mock.Anything, mock.Anything).Once()
+	tm.On("Helper")
+	tm.On("Logf", mock.Anything, mock.Anything).Once()
+	tm.On("FailNow").Once()
 	g := gold.New(tm, gold.WithPrefix("testdata", "TestExistingFiles", "json"))
 	g.JSONEq("json_eq.golden.json", "{}")
-	tm.AssertExpectations(t)
+}
+
+func TestFilesystemFails(t *testing.T) {
+	tm := mocks.NewTesting(t)
+	tm.On("Helper")
+	tm.On("Log", mock.Anything).Once()
+	tm.On("FailNow").Once()
+	readOnlyFS := afero.NewReadOnlyFs(afero.NewMemMapFs())
+	g := gold.New(tm, gold.WithFS(readOnlyFS), gold.WithFlag(true))
+	g.Eq("testdata/hello_world.txt", "Hello, World!")
 }
