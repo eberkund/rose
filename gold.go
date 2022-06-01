@@ -1,47 +1,29 @@
 package rose
 
 import (
-	"flag"
-	"io"
+	"bytes"
 	"io/ioutil"
 	"os"
+	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
-var update bool
-
-func init() {
-	flag.BoolVar(&update, "update", false, "update golden files")
-}
-
+// Gold makes assertions against golden files.
 type Gold struct {
-	ignoreOrder bool
-	flagName    string
-	flag        bool
-	t           *testing.T
+	flag   bool
+	prefix string
+	t      *testing.T
 }
 
-type GoldOption func(*Gold)
-
-func IgnoreOrder() GoldOption {
-	return func(g *Gold) {
-		g.ignoreOrder = true
-	}
-}
-
-func FlagName(flagName string) GoldOption {
-	return func(g *Gold) {
-		g.flagName = flagName
-	}
-}
-
+// New initializes a Gold.
 func New(t *testing.T, options ...GoldOption) *Gold {
 	g := &Gold{
-		t:           t,
-		ignoreOrder: false,
+		flag: false,
+		t:    t,
 	}
 	for _, o := range options {
 		o(g)
@@ -49,18 +31,51 @@ func New(t *testing.T, options ...GoldOption) *Gold {
 	return g
 }
 
-func (g *Gold) JSONEq(golden, actual string) {
-	if update {
-		file, err := os.OpenFile(golden, os.O_WRONLY, os.ModeExclusive)
-		require.NoError(g.t, err)
-		err = formatJSON(strings.NewReader(actual), file)
-		require.NoError(g.t, err)
+// GoldOption is a method to configure initialization options.
+type GoldOption func(*Gold)
+
+// UpdateFlag sets the formatting option for a new instance of Gold.
+func UpdateFlag(flag bool) GoldOption {
+	return func(g *Gold) {
+		g.flag = flag
 	}
-	expected, err := ioutil.ReadFile(golden)
-	require.NoError(g.t, err)
-	require.JSONEq(g.t, string(expected), actual)
 }
 
-func (g *Gold) YAMLEq(golden string, reader io.Reader) {
+// Prefix sets the folder prefix for golden files.
+func Prefix(elems ...string) GoldOption {
+	return func(g *Gold) {
+		g.prefix = path.Join(elems...)
+	}
+}
 
+func (g *Gold) withPrefix(path string) string {
+	return filepath.Join(g.prefix, path)
+}
+
+func (g *Gold) genericEQ(goldenPath, actual string, formatter Formats) {
+	withPrefix := g.withPrefix(goldenPath)
+	if g.flag {
+		err := os.MkdirAll(filepath.Dir(withPrefix), 0o750)
+		require.NoError(g.t, err, "could not create directory which holds golden file")
+
+		create, err := os.Create(withPrefix)
+		require.NoError(g.t, err, "could not create golden file")
+
+		err = create.Close()
+		require.NoError(g.t, err, "could not close golden file after creating it")
+
+		file, err := os.OpenFile(withPrefix, os.O_WRONLY, os.ModeExclusive)
+		require.NoError(g.t, err, "error opening golden file for writing")
+
+		err = formatter(strings.NewReader(actual), file)
+		require.NoError(g.t, err, "error formatting or writing input data to golden file")
+	}
+
+	var formatted bytes.Buffer
+	err := formatter(strings.NewReader(actual), &formatted)
+	require.NoError(g.t, err, "error formatting input data")
+
+	expected, err := ioutil.ReadFile(withPrefix)
+	require.NoError(g.t, err, "error reading golden file")
+	require.Equal(g.t, string(expected), formatted.String(), "input data did not match golden file")
 }
