@@ -13,35 +13,35 @@ import (
 var update = flag.Bool("update", false, "update golden files")
 
 func TestExistingFiles(t *testing.T) {
-	testcases := map[string]struct {
-		input      string
+	testCases := map[string]struct {
+		inputData  string
 		goldenFile string
-		test       func(g *rose.Gold) func(string, string, ...interface{})
+		testFn     func(g *rose.Gold) func(string, string, ...interface{})
 	}{
 		"json": {
-			input:      `{"foo":123,"bar":"hello world","a":true}`,
+			inputData:  `{"foo":123,"bar":"hello world","a":true}`,
 			goldenFile: "json_eq.golden.json",
-			test: func(gold *rose.Gold) func(string, string, ...interface{}) {
+			testFn: func(gold *rose.Gold) func(string, string, ...interface{}) {
 				return gold.JSONEq
 			},
 		},
 		"text": {
 			goldenFile: "text_eq.golden.txt",
-			input:      "Hello\nWorld\n!",
-			test: func(gold *rose.Gold) func(string, string, ...interface{}) {
+			inputData:  "Hello\nWorld\n!",
+			testFn: func(gold *rose.Gold) func(string, string, ...interface{}) {
 				return gold.Eq
 			},
 		},
 		"html": {
 			goldenFile: "xml_eq.golden.toml",
-			input:      `<fruits><apple/><banana/></fruits>`,
-			test: func(gold *rose.Gold) func(string, string, ...interface{}) {
+			inputData:  `<fruits><apple/><banana/></fruits>`,
+			testFn: func(gold *rose.Gold) func(string, string, ...interface{}) {
 				return gold.HTMLEq
 			},
 		},
 		"toml": {
 			goldenFile: "toml_eq.golden.toml",
-			input: `
+			inputData: `
 Age = 25
 Cats = [ "Cauchy", "Plato" ]
 
@@ -49,15 +49,15 @@ Pi = 3.14
 Perfection = [ 6, 28, 496, 8128 ]
 DOB = 1987-07-05T05:45:00Z
 `,
-			test: func(gold *rose.Gold) func(string, string, ...interface{}) {
+			testFn: func(gold *rose.Gold) func(string, string, ...interface{}) {
 				return gold.TOMLEq
 			},
 		},
 		"yaml": {
 			goldenFile: "yaml_eq.golden.yaml",
-			input: `
+			inputData: `
 jobs:
- test:
+ testFn:
    runs-on: ubuntu-22.04
    steps:
      - uses: actions/checkout@v3
@@ -65,20 +65,20 @@ jobs:
        with:
          go-version: "1.18"
 `,
-			test: func(g *rose.Gold) func(string, string, ...interface{}) {
+			testFn: func(g *rose.Gold) func(string, string, ...interface{}) {
 				return g.YAMLEq
 			},
 		},
 	}
-	for name, tc := range testcases {
+	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			gold := rose.New(
 				t,
 				rose.WithPrefix("testdata", t.Name()),
 				rose.WithFlag(*update),
 			)
-			f := tc.test(gold)
-			f(tc.goldenFile, tc.input)
+			f := tc.testFn(gold)
+			f(tc.goldenFile, tc.inputData)
 		})
 	}
 }
