@@ -2,7 +2,6 @@ package rose
 
 import (
 	"bytes"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -15,7 +14,6 @@ import (
 // Gold makes assertions against golden files.
 type Gold struct {
 	flag   bool
-	format bool
 	prefix string
 	t      *testing.T
 }
@@ -23,9 +21,8 @@ type Gold struct {
 // New initializes a Gold.
 func New(t *testing.T, options ...GoldOption) *Gold {
 	g := &Gold{
-		flag:   false,
-		format: true,
-		t:      t,
+		flag: false,
+		t:    t,
 	}
 	for _, o := range options {
 		o(g)
@@ -43,13 +40,6 @@ func UpdateFlag(flag bool) GoldOption {
 	}
 }
 
-// Format sets the formatting option for a new instance of Gold.
-func Format(format bool) GoldOption {
-	return func(g *Gold) {
-		g.format = format
-	}
-}
-
 // Prefix sets the folder prefix for golden files.
 func Prefix(prefix string) GoldOption {
 	return func(g *Gold) {
@@ -59,35 +49,6 @@ func Prefix(prefix string) GoldOption {
 
 func (g *Gold) addPrefix(path string) string {
 	return filepath.Join(g.prefix, path)
-}
-
-// JSONEq compares XML to golden file.
-func (g *Gold) JSONEq(goldenPath, actual string) {
-	g.genericEQ(g.addPrefix(goldenPath), actual, formatJSON)
-}
-
-// XMLEq compares XML to golden file.
-func (g *Gold) XMLEq(goldenPath, actual string) {
-	g.genericEQ(g.addPrefix(goldenPath), actual, formatXML)
-}
-
-// TOMLEq compares TOML to golden file.
-func (g *Gold) TOMLEq(goldenPath, actual string) {
-	g.genericEQ(g.addPrefix(goldenPath), actual, formatTOML)
-}
-
-// YAMLEq compares YAML to golden file.
-func (g *Gold) YAMLEq(goldenPath, actual string) {
-	g.genericEQ(g.addPrefix(goldenPath), actual, formatYAML)
-}
-
-// Eq compares string to golden file.
-func (g *Gold) Eq(goldenPath, actual string) {
-	noopFormatter := func(reader io.Reader, writer io.Writer) error {
-		_, err := io.Copy(writer, reader)
-		return err
-	}
-	g.genericEQ(g.addPrefix(goldenPath), actual, noopFormatter)
 }
 
 func (g *Gold) genericEQ(goldenPath, actual string, formatter Formats) {

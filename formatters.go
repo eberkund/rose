@@ -56,3 +56,8 @@ func formatTOML(reader io.Reader, writer io.Writer) error {
 	decoder := toml.NewDecoder(reader)
 	return format(encoder, decoder)
 }
+
+func formatNoop(reader io.Reader, writer io.Writer) error {
+	_, err := io.Copy(writer, reader)
+	return err
+}
