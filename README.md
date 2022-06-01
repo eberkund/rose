@@ -1,5 +1,7 @@
 # Rose 
 
+[![.github/workflows/test.yml](https://github.com/eberkund/rose/actions/workflows/test.yml/badge.svg)](https://github.com/eberkund/rose/actions/workflows/test.yml)
+
 Rose is a golden file utility library for your Go tests.
 
 - Excellent support for JSON, XML, YAML

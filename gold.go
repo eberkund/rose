@@ -47,7 +47,7 @@ func Prefix(prefix string) GoldOption {
 	}
 }
 
-func (g *Gold) addPrefix(path string) string {
+func (g *Gold) withPrefix(path string) string {
 	return filepath.Join(g.prefix, path)
 }
 
