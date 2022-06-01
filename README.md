@@ -1,4 +1,4 @@
-[![Tests](https://github.com/eberkund/rose/actions/Tests/badge.svg)](https://github.com/eberkund/rose/actions/workflows/Tests)
+[![Tests](https://github.com/eberkund/rose/actions/workflows/tests.yml/badge.svg)](https://github.com/eberkund/rose/actions/workflows/tests.yml)
 [![codecov](https://codecov.io/gh/eberkund/rose/branch/master/graph/badge.svg?token=lCcKXaBzlD)](https://codecov.io/gh/eberkund/rose)
 [![Go Report Card](https://goreportcard.com/badge/github.com/eberkund/rose)](https://goreportcard.com/report/github.com/eberkund/rose)
 
