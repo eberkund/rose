@@ -22,27 +22,27 @@ func TestExistingFiles(t *testing.T) {
 	}{
 		"json": {
 			inputData:  `{"foo":123,"bar":"hello world","a":true}`,
-			goldenFile: "json_eq.golden.json",
+			goldenFile: "assert_json.golden.json",
 			testFn: func(g *gold.Gold) func(string, string) {
-				return g.JSONEq
+				return g.AssertEqualsJSON
 			},
 		},
 		"text": {
-			goldenFile: "text_eq.golden.txt",
+			goldenFile: "assert_text.golden.txt",
 			inputData:  "Hello\nWorld\n!",
 			testFn: func(g *gold.Gold) func(string, string) {
-				return g.Eq
+				return g.AssertEquals
 			},
 		},
 		"html": {
-			goldenFile: "xml_eq.golden.toml",
+			goldenFile: "assert_xml.golden.toml",
 			inputData:  `<fruits><apple/><banana/></fruits>`,
 			testFn: func(g *gold.Gold) func(string, string) {
-				return g.HTMLEq
+				return g.AssertEqualsHTML
 			},
 		},
 		"toml": {
-			goldenFile: "toml_eq.golden.toml",
+			goldenFile: "assert_toml.golden.toml",
 			inputData: `
 Age = 25
 Cats = [ "Cauchy", "Plato" ]
@@ -52,11 +52,11 @@ Perfection = [ 6, 28, 496, 8128 ]
 DOB = 1987-07-05T05:45:00Z
 `,
 			testFn: func(g *gold.Gold) func(string, string) {
-				return g.TOMLEq
+				return g.AssertEqualsTOML
 			},
 		},
 		"yaml": {
-			goldenFile: "yaml_eq.golden.yaml",
+			goldenFile: "assert_yaml.golden.yaml",
 			inputData: `
 jobs:
  test:
@@ -68,14 +68,14 @@ jobs:
          go-version: "1.18"
 `,
 			testFn: func(g *gold.Gold) func(string, string) {
-				return g.YAMLEq
+				return g.AssertEqualsYAML
 			},
 		},
 	}
 	for name, tc := range testCases {
-		t.Run(name, func(subTest *testing.T) {
+		t.Run(name, func(st *testing.T) {
 			g := gold.New(
-				subTest,
+				st,
 				gold.WithPrefix("testdata", t.Name()),
 				gold.WithFlag(*update),
 				gold.WithFailAfter(),
@@ -101,11 +101,20 @@ func TestUpdatingGoldenFile(t *testing.T) {
 	require.NoError(t, err)
 
 	g := gold.New(t, gold.WithFS(memFs), gold.WithFlag(true))
-	g.Eq("test_data.txt", newData)
+	g.AssertEquals("test_data.txt", newData)
 
 	data, err := afero.ReadFile(memFs, "testdata/test_data.txt")
 	require.NoError(t, err)
 	require.Equal(t, newData, string(data))
+}
+
+func TestInvalidData(t *testing.T) {
+	tm := mocks.NewTesting(t)
+	tm.On("Helper")
+	tm.On("Log", mock.Anything).Once()
+	tm.On("FailNow").Once()
+	g := gold.New(tm, gold.WithPrefix("testdata", t.Name()))
+	g.AssertEqualsJSON("empty_json.golden.json", "this is not valid JSON")
 }
 
 func TestDiffGoldenFile(t *testing.T) {
@@ -113,8 +122,8 @@ func TestDiffGoldenFile(t *testing.T) {
 	tm.On("Helper")
 	tm.On("Logf", mock.Anything, mock.Anything).Once()
 	tm.On("FailNow").Once()
-	g := gold.New(tm, gold.WithPrefix("testdata", "TestExistingFiles"))
-	g.JSONEq("json_eq.golden.json", "{}")
+	g := gold.New(tm, gold.WithPrefix("testdata", t.Name()))
+	g.AssertEqualsJSON("empty_json.golden.json", "{}")
 }
 
 func TestFileSystemError(t *testing.T) {
@@ -124,5 +133,5 @@ func TestFileSystemError(t *testing.T) {
 	tm.On("FailNow").Once()
 	readOnlyFS := afero.NewReadOnlyFs(afero.NewMemMapFs())
 	g := gold.New(tm, gold.WithFS(readOnlyFS), gold.WithFlag(true))
-	g.Eq("testdata/hello_world.txt", "Hello, World!")
+	g.AssertEquals("any/path/hello_world.golden.txt", "Hello, World!")
 }

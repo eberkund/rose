@@ -2,15 +2,18 @@ package gold
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/eberkund/rose/formatting"
 	"github.com/pkg/errors"
 	"github.com/pmezard/go-difflib/difflib"
 	"github.com/spf13/afero"
 )
+
+// Formats is an alias for function signature that reads from reader, formats it and writes to writer.
+type Formats func(reader io.Reader, writer io.Writer) error
 
 // Testing is a subset of testing.TB that can be reimplemented.
 type Testing interface {
@@ -43,7 +46,7 @@ type Gold struct {
 	fs     afero.Fs
 }
 
-// New initializes a Gold.
+// New initializes an instance of Gold.
 func New(t Testing, options ...Option) *Gold {
 	g := &Gold{
 		t:      t,
@@ -62,7 +65,7 @@ func (g *Gold) prependPrefix(path string) string {
 	return filepath.Join(g.prefix, path)
 }
 
-func (g *Gold) update(filename, actual string, formatter formatting.Formats) error {
+func (g *Gold) update(filename, actual string, formatter Formats) error {
 	if !g.flag {
 		return nil
 	}
@@ -84,12 +87,12 @@ func (g *Gold) update(filename, actual string, formatter formatting.Formats) err
 	}
 	err = formatter(strings.NewReader(actual), file)
 	if err != nil {
-		return errors.Wrap(err, "could not format or write inputData data to golden file")
+		return errors.Wrap(err, "could not format or write data to golden file")
 	}
 	return nil
 }
 
-func (g *Gold) assert(goldenPath, given string, formatter formatting.Formats) (string, error) {
+func (g *Gold) assert(goldenPath, given string, formatter Formats) (string, error) {
 	prefixed := g.prependPrefix(goldenPath)
 	if err := g.update(prefixed, given, formatter); err != nil {
 		return "", err
