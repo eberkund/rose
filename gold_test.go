@@ -2,9 +2,12 @@ package rose_test
 
 import (
 	"flag"
+	"io"
 	"testing"
 
 	"github.com/eberkund/rose"
+	"github.com/spf13/afero"
+	"github.com/stretchr/testify/require"
 )
 
 var update = flag.Bool("update", false, "update golden files")
@@ -78,4 +81,26 @@ jobs:
 			f(tc.goldenFile, tc.input)
 		})
 	}
+}
+
+func TestUpdate(t *testing.T) {
+	const (
+		oldData = "foo"
+		newData = "bar"
+	)
+
+	memFs := afero.NewMemMapFs()
+	file, err := memFs.Create("testdata/test_data.txt")
+	require.NoError(t, err)
+	_, err = io.WriteString(file, oldData)
+	require.NoError(t, err)
+	err = file.Close()
+	require.NoError(t, err)
+
+	g := rose.New(t, rose.WithFS(memFs), rose.WithFlag(true))
+	g.Eq("test_data.txt", newData)
+
+	data, err := afero.ReadFile(memFs, "testdata/test_data.txt")
+	require.NoError(t, err)
+	require.Equal(t, newData, string(data))
 }
