@@ -108,6 +108,7 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestFailingDiff(t *testing.T) {
+
 	tm := mocks.NewTesting(t)
 	tm.On("Fatalf", mock.Anything, mock.Anything).Once()
 	g := gold.New(tm, gold.WithPrefix("testdata", "TestExistingFiles", "json"))
