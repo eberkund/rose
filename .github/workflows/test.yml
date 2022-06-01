@@ -10,8 +10,7 @@ jobs:
           stable: false
           go-version: "1.18"
 
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v2
+#      - uses: golangci/golangci-lint-action@v2
 
       - name: go test
         run: go test ./...
