@@ -11,12 +11,15 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Formats is an alias for function signature that reads from reader, formats it and writes to writer.
 type Formats func(reader io.Reader, writer io.Writer) error
 
+// Encoder encodes the given struct to an io.Writer.
 type Encoder interface {
 	Encode(v interface{}) error
 }
 
+// Decoder decodes from an io.Reader to the given struct.
 type Decoder interface {
 	Decode(v interface{}) error
 }
