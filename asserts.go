@@ -5,9 +5,9 @@ func (g *Gold) JSONEq(goldenPath, actual string) {
 	g.genericEQ(goldenPath, actual, formatJSON)
 }
 
-// XMLEq compares XML to golden file.
-func (g *Gold) XMLEq(goldenPath, actual string) {
-	g.genericEQ(goldenPath, actual, formatXML)
+// HTMLEq compares XML to golden file.
+func (g *Gold) HTMLEq(goldenPath, actual string) {
+	g.genericEQ(goldenPath, actual, formatHTML)
 }
 
 // TOMLEq compares TOML to golden file.

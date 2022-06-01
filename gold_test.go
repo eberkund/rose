@@ -39,13 +39,13 @@ func TestGold_Eq(t *testing.T) {
 	g.Eq("text_eq.golden.txt", "Hello\nWorld\n!")
 }
 
-func TestGold_XMLEq(t *testing.T) {
+func TestGold_HTMLEq(t *testing.T) {
 	golden := rose.New(
 		t,
 		rose.UpdateFlag(update),
 		rose.Prefix("testdata", t.Name()),
 	)
-	golden.XMLEq("xml_eq.golden.toml", `
+	golden.HTMLEq("xml_eq.golden.toml", `
 	<fruits><apple/><banana/></fruits>
 	`)
 }
