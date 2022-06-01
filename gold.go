@@ -56,16 +56,16 @@ func (g *Gold) genericEQ(goldenPath, actual string, formatter Formats) {
 	withPrefix := g.withPrefix(goldenPath)
 	if g.flag {
 		file, err := os.OpenFile(withPrefix, os.O_WRONLY, os.ModeExclusive)
-		require.NoError(g.t, err)
+		require.NoError(g.t, err, "error opening golden file for writing")
 		err = formatter(strings.NewReader(actual), file)
-		require.NoError(g.t, err)
+		require.NoError(g.t, err, "error formatting or writing input data to golden file")
 	}
 
 	var formatted bytes.Buffer
 	err := formatter(strings.NewReader(actual), &formatted)
-	require.NoError(g.t, err)
+	require.NoError(g.t, err, "error formatting input data")
 
 	expected, err := ioutil.ReadFile(withPrefix)
-	require.NoError(g.t, err)
-	require.Equal(g.t, string(expected), formatted.String())
+	require.NoError(g.t, err, "error reading golden file")
+	require.Equal(g.t, string(expected), formatted.String(), "input data did not match golden file")
 }
