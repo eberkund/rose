@@ -9,10 +9,14 @@ import (
 // Option is the signature for functions that configure Gold.
 type Option func(g *Gold)
 
-// WithFatal configures whether file differences will be fatal or errors.
+// WithFatal configures whether file differences will be fail or errors.
 func WithFatal(fatal bool) Option {
 	return func(g *Gold) {
-		g.fatal = fatal
+		if fatal {
+			g.fail = g.t.FailNow
+		} else {
+			g.fail = g.t.Fail
+		}
 	}
 }
 

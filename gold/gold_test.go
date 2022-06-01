@@ -109,8 +109,19 @@ func TestUpdate(t *testing.T) {
 
 func TestFailingDiff(t *testing.T) {
 	tm := mocks.NewTesting(t)
-	tm.On("Fatalf", mock.Anything, mock.Anything).Once()
+	tm.On("Helper")
+	tm.On("Logf", mock.Anything, mock.Anything).Once()
+	tm.On("FailNow").Once()
 	g := gold.New(tm, gold.WithPrefix("testdata", "TestExistingFiles", "json"))
 	g.JSONEq("json_eq.golden.json", "{}")
-	tm.AssertExpectations(t)
+}
+
+func TestFilesystemFails(t *testing.T) {
+	tm := mocks.NewTesting(t)
+	tm.On("Helper")
+	tm.On("Log", mock.Anything).Once()
+	tm.On("FailNow").Once()
+	readOnlyFS := afero.NewReadOnlyFs(afero.NewMemMapFs())
+	g := gold.New(tm, gold.WithFS(readOnlyFS), gold.WithFlag(true))
+	g.Eq("testdata/hello_world.txt", "Hello, World!")
 }
