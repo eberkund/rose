@@ -5,10 +5,17 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
+
+var update bool
+
+func init() {
+	flag.BoolVar(&update, "update", false, "update golden files")
+}
 
 type Gold struct {
 	ignoreOrder bool
@@ -35,28 +42,23 @@ func New(t *testing.T, options ...GoldOption) *Gold {
 	g := &Gold{
 		t:           t,
 		ignoreOrder: false,
-		flagName:    "update",
-		flag:        false,
 	}
 	for _, o := range options {
 		o(g)
 	}
-	flag.BoolVar(&g.flag, g.flagName, false, "update golden files")
 	return g
 }
 
-func (g *Gold) JSONEq(golden string, reader io.Reader) {
-	if g.flag {
+func (g *Gold) JSONEq(golden, actual string) {
+	if update {
 		file, err := os.OpenFile(golden, os.O_WRONLY, os.ModeExclusive)
 		require.NoError(g.t, err)
-		err = formatJSON(reader, file)
+		err = formatJSON(strings.NewReader(actual), file)
 		require.NoError(g.t, err)
 	}
-	got, err := ioutil.ReadAll(reader)
-	require.NoError(g.t, err)
 	expected, err := ioutil.ReadFile(golden)
 	require.NoError(g.t, err)
-	require.JSONEq(g.t, string(expected), string(got))
+	require.JSONEq(g.t, string(expected), actual)
 }
 
 func (g *Gold) YAMLEq(golden string, reader io.Reader) {

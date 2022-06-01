@@ -1,4 +1,5 @@
 {
-  "foo":  123,
-  "bar": "hello world"
+	"a": true,
+	"bar": "hello world",
+	"foo": 123
 }
