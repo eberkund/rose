@@ -21,22 +21,22 @@ import (
 	"flag"
 	"testing"
 
-	"github.com/eberkund/rose"
+	"github.com/eberkund/rose/gold"
 )
 
 // Use `go test ./... -update` to write new files with supplied data
 var update = flag.Bool("update", false, "update golden files")
 
 func TestFiles(t *testing.T) {
-    g := rose.New(
+    g := gold.New(
         t,
 
         // Pass the update flag to Gold constructor
-        rose.WithFlag(*update),
+        gold.WithFlag(*update),
 
         // Store files in `testdata/<test name>/<file name>`
         // Prefix defaults to `testdata`
-        rose.WithPrefix("testdata", t.Name()),
+        gold.WithPrefix("testdata", t.Name()),
     )
 
     // Provide the filename and input data

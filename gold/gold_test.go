@@ -1,47 +1,49 @@
-package rose_test
+package gold_test
 
 import (
 	"flag"
 	"io"
 	"testing"
 
-	"github.com/eberkund/rose"
+	"github.com/eberkund/rose/gold"
+	"github.com/eberkund/rose/mocks"
 	"github.com/spf13/afero"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
 var update = flag.Bool("update", false, "update golden files")
 
 func TestExistingFiles(t *testing.T) {
-	testcases := map[string]struct {
-		input      string
+	testCases := map[string]struct {
+		inputData  string
 		goldenFile string
-		test       func(g *rose.Gold) func(string, string)
+		testFn     func(g *gold.Gold) func(string, string)
 	}{
 		"json": {
-			input:      `{"foo":123,"bar":"hello world","a":true}`,
+			inputData:  `{"foo":123,"bar":"hello world","a":true}`,
 			goldenFile: "json_eq.golden.json",
-			test: func(gold *rose.Gold) func(string, string) {
+			testFn: func(gold *gold.Gold) func(string, string) {
 				return gold.JSONEq
 			},
 		},
 		"text": {
 			goldenFile: "text_eq.golden.txt",
-			input:      "Hello\nWorld\n!",
-			test: func(gold *rose.Gold) func(string, string) {
+			inputData:  "Hello\nWorld\n!",
+			testFn: func(gold *gold.Gold) func(string, string) {
 				return gold.Eq
 			},
 		},
 		"html": {
 			goldenFile: "xml_eq.golden.toml",
-			input:      `<fruits><apple/><banana/></fruits>`,
-			test: func(gold *rose.Gold) func(string, string) {
+			inputData:  `<fruits><apple/><banana/></fruits>`,
+			testFn: func(gold *gold.Gold) func(string, string) {
 				return gold.HTMLEq
 			},
 		},
 		"toml": {
 			goldenFile: "toml_eq.golden.toml",
-			input: `
+			inputData: `
 Age = 25
 Cats = [ "Cauchy", "Plato" ]
 
@@ -49,13 +51,13 @@ Pi = 3.14
 Perfection = [ 6, 28, 496, 8128 ]
 DOB = 1987-07-05T05:45:00Z
 `,
-			test: func(gold *rose.Gold) func(string, string) {
+			testFn: func(gold *gold.Gold) func(string, string) {
 				return gold.TOMLEq
 			},
 		},
 		"yaml": {
 			goldenFile: "yaml_eq.golden.yaml",
-			input: `
+			inputData: `
 jobs:
  test:
    runs-on: ubuntu-22.04
@@ -65,20 +67,20 @@ jobs:
        with:
          go-version: "1.18"
 `,
-			test: func(g *rose.Gold) func(string, string) {
+			testFn: func(g *gold.Gold) func(string, string) {
 				return g.YAMLEq
 			},
 		},
 	}
-	for name, tc := range testcases {
+	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			gold := rose.New(
+			gold := gold.New(
 				t,
-				rose.WithPrefix("testdata", t.Name()),
-				rose.WithFlag(*update),
+				gold.WithPrefix("testdata", t.Name()),
+				gold.WithFlag(*update),
 			)
-			f := tc.test(gold)
-			f(tc.goldenFile, tc.input)
+			f := tc.testFn(gold)
+			f(tc.goldenFile, tc.inputData)
 		})
 	}
 }
@@ -97,10 +99,18 @@ func TestUpdate(t *testing.T) {
 	err = file.Close()
 	require.NoError(t, err)
 
-	g := rose.New(t, rose.WithFS(memFs), rose.WithFlag(true))
+	g := gold.New(t, gold.WithFS(memFs), gold.WithFlag(true), gold.WithFatal(false))
 	g.Eq("test_data.txt", newData)
 
 	data, err := afero.ReadFile(memFs, "testdata/test_data.txt")
 	require.NoError(t, err)
 	require.Equal(t, newData, string(data))
+}
+
+func TestFailingDiff(t *testing.T) {
+	tm := mocks.NewTesting(t)
+	tm.On("Fatalf", mock.Anything, mock.Anything).Once()
+	g := gold.New(tm, gold.WithPrefix("testdata", "TestExistingFiles", "json"))
+	g.JSONEq("json_eq.golden.json", "{}")
+	tm.AssertExpectations(t)
 }
