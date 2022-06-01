@@ -57,7 +57,7 @@ DOB = 1987-07-05T05:45:00Z
 			goldenFile: "yaml_eq.golden.yaml",
 			inputData: `
 jobs:
- testFn:
+ test:
    runs-on: ubuntu-22.04
    steps:
      - uses: actions/checkout@v3
@@ -108,4 +108,8 @@ func TestUpdate(t *testing.T) {
 //func TestFailingDiff(t *testing.T) {
 //	gold := rose.New(t, rose.WithPrefix("testdata", "TestExistingFiles", "json"))
 //	gold.JSONEq("json_eq.golden.json", "{}")
+//	if t.Failed() {
+//		t.SkipNow()
+//		println("very nice!")
+//	}
 //}
