@@ -35,7 +35,14 @@ func New(t *testing.T, options ...GoldOption) *Gold {
 }
 
 // GoldOption is a method to configure initialization options.
-type GoldOption func(*Gold)
+type GoldOption func(g *Gold)
+
+// WithFS sets the internal filesystem used for assertions.
+func WithFS(fs afero.Fs) GoldOption {
+	return func(g *Gold) {
+		g.fs = fs
+	}
+}
 
 // WithFlag sets the formatting option for a new instance of Gold.
 func WithFlag(flag bool) GoldOption {
