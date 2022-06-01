@@ -78,6 +78,7 @@ jobs:
 				t,
 				gold.WithPrefix("testdata", t.Name()),
 				gold.WithFlag(*update),
+				gold.WithFailAfter(),
 			)
 			f := tc.testFn(g)
 			f(tc.goldenFile, tc.inputData)
@@ -99,7 +100,7 @@ func TestUpdate(t *testing.T) {
 	err = file.Close()
 	require.NoError(t, err)
 
-	g := gold.New(t, gold.WithFS(memFs), gold.WithFlag(true), gold.WithFatal(false))
+	g := gold.New(t, gold.WithFS(memFs), gold.WithFlag(true))
 	g.Eq("test_data.txt", newData)
 
 	data, err := afero.ReadFile(memFs, "testdata/test_data.txt")
