@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/afero"
 )
 
+// Testing is a subset of testing.TB that can be mocked.
 type Testing interface {
 	Error(args ...any)
 	Errorf(format string, args ...any)
