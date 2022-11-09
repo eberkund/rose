@@ -2,7 +2,10 @@ package gold_test
 
 import (
 	"flag"
+	"fmt"
 	"io"
+	"os"
+	"path"
 	"testing"
 
 	"github.com/eberkund/rose/gold"
@@ -16,57 +19,35 @@ var update = flag.Bool("update", false, "update golden files")
 
 func TestExistingFiles(t *testing.T) {
 	testCases := map[string]struct {
-		inputData  string
-		goldenFile string
-		testFn     func(g *gold.Gold) func(string, string)
+		extension string
+		testFn    func(g *gold.Gold) func(string, string)
 	}{
 		"json": {
-			inputData:  `{"foo":123,"bar":"hello world","a":true}`,
-			goldenFile: "assert_json.golden.json",
+			extension: "json",
 			testFn: func(g *gold.Gold) func(string, string) {
 				return g.AssertEqualsJSON
 			},
 		},
 		"text": {
-			goldenFile: "assert_text.golden.txt",
-			inputData:  "Hello\nWorld\n!",
+			extension: "txt",
 			testFn: func(g *gold.Gold) func(string, string) {
 				return g.AssertEquals
 			},
 		},
-		"html": {
-			goldenFile: "assert_xml.golden.toml",
-			inputData:  `<fruits><apple/><banana/></fruits>`,
+		"xml": {
+			extension: "xml",
 			testFn: func(g *gold.Gold) func(string, string) {
 				return g.AssertEqualsHTML
 			},
 		},
 		"toml": {
-			goldenFile: "assert_toml.golden.toml",
-			inputData: `
-Age = 25
-Cats = [ "Cauchy", "Plato" ]
-
-Pi = 3.14
-Perfection = [ 6, 28, 496, 8128 ]
-DOB = 1987-07-05T05:45:00Z
-`,
+			extension: "toml",
 			testFn: func(g *gold.Gold) func(string, string) {
 				return g.AssertEqualsTOML
 			},
 		},
 		"yaml": {
-			goldenFile: "assert_yaml.golden.yaml",
-			inputData: `
-jobs:
- test:
-   runs-on: ubuntu-22.04
-   steps:
-     - uses: actions/checkout@v3
-     - uses: actions/setup-go@v2
-       with:
-         go-version: "1.18"
-`,
+			extension: "yaml",
 			testFn: func(g *gold.Gold) func(string, string) {
 				return g.AssertEqualsYAML
 			},
@@ -74,14 +55,18 @@ jobs:
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(st *testing.T) {
+			prefix := path.Join("testdata", t.Name(), name)
 			g := gold.New(
 				st,
-				gold.WithPrefix("testdata", t.Name()),
+				gold.WithPrefix(prefix),
 				gold.WithFlag(*update),
 				gold.WithFailAfter(),
 			)
-			f := tc.testFn(g)
-			f(tc.goldenFile, tc.inputData)
+			testFn := tc.testFn(g)
+			inputFile := path.Join(prefix, fmt.Sprintf("input.%s", tc.extension))
+			goldenFile := fmt.Sprintf("input.golden.%s", tc.extension)
+			data, _ := os.ReadFile(inputFile)
+			testFn(goldenFile, string(data))
 		})
 	}
 }
