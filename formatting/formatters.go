@@ -3,7 +3,6 @@ package formatting
 import (
 	"encoding/json"
 	"io"
-	"io/ioutil"
 
 	"github.com/pelletier/go-toml"
 	"github.com/yosssi/gohtml"
@@ -20,7 +19,7 @@ func JSON(reader io.Reader, writer io.Writer) error {
 
 // HTML formats the contents of reader and writes the results to writer.
 func HTML(reader io.Reader, writer io.Writer) error {
-	all, err := ioutil.ReadAll(reader)
+	all, err := io.ReadAll(reader)
 	if err != nil {
 		return err
 	}
