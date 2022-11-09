@@ -64,7 +64,7 @@ func TestExistingFiles(t *testing.T) {
 			)
 			testFn := tc.testFn(g)
 			inputFile := path.Join(prefix, fmt.Sprintf("input.%s", tc.extension))
-			goldenFile := fmt.Sprintf("input.golden.%s", tc.extension)
+			goldenFile := fmt.Sprintf("golden.%s", tc.extension)
 			data, _ := os.ReadFile(inputFile)
 			testFn(goldenFile, string(data))
 		})
